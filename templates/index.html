@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Account Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .loading {
+            display: none;
+        }
+        .result {
+            display: none;
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        #countdown {
+            display: none;
+        }
+        .trust-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        .trusted {
+            background-color: #10B981;
+        }
+        .suspicious {
+            background-color: #EF4444;
+        }
+        .neutral {
+            background-color: #F59E0B;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">Fake Account Detector</h1>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <form id="analyzeForm" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700">Twitter Username</label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                @
+                            </span>
+                            <input type="text" name="username" id="username" 
+                                   class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                   placeholder="elonmusk" required>
+                        </div>
+                    </div>
+                    <button type="submit" id="submitButton"
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Analyze Account
+                    </button>
+                    <div id="countdown" class="text-center text-sm text-gray-600">
+                        Please wait <span id="timer">60</span> seconds before trying again...
+                    </div>
+                </form>
+            </div>
+
+            <div id="loading" class="loading text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                <p class="mt-2 text-gray-600">Analyzing account...</p>
+            </div>
+
+            <div id="result" class="result bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <span id="displayUsername"></span>
+                        <span id="trustIndicator" class="trust-indicator"></span>
+                        <span id="verifiedBadge" class="ml-2 hidden">
+                            <svg class="w-5 h-5 text-blue-500 inline" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </span>
+                    </h2>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">Account Genuinity</span>
+                        <span id="genuinityPercentage" class="text-sm font-medium text-gray-700">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progressBar" class="progress-bar bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Account Details</h3>
+                        <ul class="space-y-2">
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Followers</span>
+                                <span id="followers" class="font-medium"></span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Following</span>
+                                <span id="following" class="font-medium"></span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Tweets</span>
+                                <span id="tweets" class="font-medium"></span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Account Age</span>
+                                <span id="accountAge" class="font-medium"></span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Verification</h3>
+                        <ul class="space-y-2">
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Verified Account</span>
+                                <span id="verified" class="font-medium"></span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Profile Image</span>
+                                <span id="profileImage" class="font-medium"></span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span class="text-gray-600">Bio</span>
+                                <span id="description" class="font-medium"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error" class="hidden mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded"></div>
+        </div>
+    </div>
+
+    <script>
+        let countdownInterval;
+        
+        function startCountdown(seconds) {
+            const submitButton = document.getElementById('submitButton');
+            const countdown = document.getElementById('countdown');
+            const timer = document.getElementById('timer');
+            
+            submitButton.disabled = true;
+            countdown.style.display = 'block';
+            
+            let timeLeft = seconds;
+            
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                timer.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    submitButton.disabled = false;
+                    countdown.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function updateTrustIndicator(genuinity, isVerified) {
+            const indicator = document.getElementById('trustIndicator');
+            const verifiedBadge = document.getElementById('verifiedBadge');
+            
+            // Show/hide verified badge
+            if (isVerified === true || isVerified === 'Yes') {
+                verifiedBadge.classList.remove('hidden');
+            } else {
+                verifiedBadge.classList.add('hidden');
+            }
+            
+            // Update trust indicator color
+            indicator.classList.remove('trusted', 'suspicious', 'neutral');
+            if (genuinity >= 70) {
+                indicator.classList.add('trusted');
+            } else if (genuinity <= 30) {
+                indicator.classList.add('suspicious');
+            } else {
+                indicator.classList.add('neutral');
+            }
+        }
+
+        document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+            
+            // Show loading, hide result and error
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            error.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `username=${encodeURIComponent(username)}`
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Update username display
+                    document.getElementById('displayUsername').textContent = '@' + username;
+                    
+                    // Update the UI with results
+                    document.getElementById('genuinityPercentage').textContent = `${data.genuinity}%`;
+                    document.getElementById('progressBar').style.width = `${data.genuinity}%`;
+                    
+                    // Update account details
+                    document.getElementById('followers').textContent = data.details.followers;
+                    document.getElementById('following').textContent = data.details.following;
+                    document.getElementById('tweets').textContent = data.details.tweets;
+                    document.getElementById('accountAge').textContent = `${data.details.account_age} days`;
+                    document.getElementById('verified').textContent = data.details.verified;
+                    document.getElementById('profileImage').textContent = data.details.has_profile_image;
+                    document.getElementById('description').textContent = data.details.has_description;
+                    
+                    // Update trust indicator
+                    updateTrustIndicator(data.genuinity, data.details.verified);
+                    
+                    // Show result
+                    loading.style.display = 'none';
+                    result.style.display = 'block';
+                } else {
+                    throw new Error(data.error || 'An error occurred');
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                error.textContent = err.message;
+                error.classList.remove('hidden');
+                
+                // Check if it's a rate limit error
+                if (err.message.includes('Rate limit') && err.wait_time) {
+                    startCountdown(err.wait_time);
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
