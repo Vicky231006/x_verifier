@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # X Verifier - Twitter Account Authenticity Checker
 
 A powerful tool to analyze Twitter/X accounts and determine their authenticity using various metrics and machine learning techniques.
@@ -122,3 +123,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Your Name - [@Vicky231006](https://github.com/Vicky231006)
 
 Project Link: [https://github.com/Vicky231006/x_verifier](https://github.com/Vicky231006/x_verifier) 
+=======
+# x_verifier
+>>>>>>> 1a9f9b7334348cf2bd3294f132c5d8d569f01918
